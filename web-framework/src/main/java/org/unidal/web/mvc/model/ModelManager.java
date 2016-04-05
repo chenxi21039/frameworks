@@ -99,11 +99,17 @@ public class ModelManager extends ContainerHolder implements Initializable {
                + " for " + method);
       }
 
-      InboundActionModel existed = module.getInbounds().get(inMeta.name());
+      InboundActionModel existing = module.getInbounds().get(inMeta.name());
 
-      if (existed != null) {
-         throw new RuntimeException("Duplicated name(" + inMeta.name() + ") found between " + method.getName()
-               + "() and " + existed.getActionMethod().getName() + "() of " + module.getModuleClass());
+      if (existing != null) {
+         if (existing.getActionMethod().getName().equals(method.getName())
+               && existing.getActionMethod().getDeclaringClass() == method.getDeclaringClass()) {
+            return existing;
+         }
+
+         throw new RuntimeException(String.format("Duplicated name(%s) found between %s() of %s and %s() of %s",
+               inMeta.name(), method.getName(), method.getDeclaringClass(), existing.getActionMethod().getName(),
+               module.getModuleClass()));
       }
 
       assertParameter(method);
@@ -171,8 +177,8 @@ public class ModelManager extends ContainerHolder implements Initializable {
       for (Method method : methods) {
          int modifier = method.getModifiers();
 
-         // ignore static and abstract methods
-         if (Modifier.isStatic(modifier) || Modifier.isAbstract(modifier)) {
+         // ignore static, abstract and bridge methods
+         if (Modifier.isStatic(modifier) || Modifier.isAbstract(modifier) || method.isBridge()) {
             continue;
          }
 
@@ -287,6 +293,9 @@ public class ModelManager extends ContainerHolder implements Initializable {
                return module;
             }
          }
+
+         // return first module for default action
+         return list.get(0);
       }
 
       return m_defaultModule;

@@ -1,6 +1,7 @@
 package org.unidal.dal.jdbc.entity;
 
 import java.lang.reflect.Method;
+import java.sql.Blob;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,18 +9,21 @@ import java.util.Map;
 
 import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
-
 import org.unidal.dal.jdbc.DalRuntimeException;
 import org.unidal.dal.jdbc.DataField;
 import org.unidal.dal.jdbc.DataObject;
 import org.unidal.dal.jdbc.raw.RawDataObject;
+import org.unidal.lookup.annotation.Inject;
+import org.unidal.lookup.annotation.Named;
 
+@Named(type = DataObjectAccessor.class)
 public class DefaultDataObjectAccessor implements DataObjectAccessor, LogEnabled {
+   @Inject
+   private DataObjectNaming m_naming;
+
    private Map<Class<? extends DataObject>, Map<String, Method>> m_getMap = new HashMap<Class<? extends DataObject>, Map<String, Method>>();
 
    private Map<Class<? extends DataObject>, Map<String, Method>> m_setMap = new HashMap<Class<? extends DataObject>, Map<String, Method>>();
-
-   private DataObjectNaming m_naming;
 
    private Logger m_logger;
 
@@ -58,7 +62,7 @@ public class DefaultDataObjectAccessor implements DataObjectAccessor, LogEnabled
          String val = value.toString();
 
          if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("1") || val.equalsIgnoreCase("on")
-                  || val.equalsIgnoreCase("T") || val.equalsIgnoreCase("Y")) {
+               || val.equalsIgnoreCase("T") || val.equalsIgnoreCase("Y")) {
             return Boolean.TRUE;
          } else {
             return Boolean.FALSE;
@@ -66,6 +70,16 @@ public class DefaultDataObjectAccessor implements DataObjectAccessor, LogEnabled
       } else if (clazz == Date.class) {
          if (value instanceof Timestamp) {
             return value;
+         }
+      } else if (clazz == byte[].class) {
+         if (value instanceof Blob) {
+            Blob blob = (Blob) value;
+
+            try {
+               return blob.getBytes(0L, (int) blob.length());
+            } catch (Exception e) {
+               throw new DalRuntimeException("Error when converting Blob to byte[]!", e);
+            }
          }
       }
 
@@ -118,7 +132,7 @@ public class DefaultDataObjectAccessor implements DataObjectAccessor, LogEnabled
 
    public void setFieldValue(DataObject dataObject, DataField dataField, Object value) {
       if (dataObject instanceof RawDataObject) {
-      	((RawDataObject) dataObject).setFieldUsed(dataField, true);
+         ((RawDataObject) dataObject).setFieldUsed(dataField, true);
          ((RawDataObject) dataObject).setFieldValue(dataField.getName(), value);
          return;
       }
@@ -148,7 +162,7 @@ public class DefaultDataObjectAccessor implements DataObjectAccessor, LogEnabled
          }
       } catch (Exception e) {
          throw new DalRuntimeException("Error when setting value of field(" + name + ") of " + clazz + ", required: "
-                  + type + ", but: " + value.getClass(), e);
+               + type + ", but: " + value.getClass(), e);
       }
    }
 }

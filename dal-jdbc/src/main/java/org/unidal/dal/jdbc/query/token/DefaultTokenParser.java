@@ -6,9 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.unidal.dal.jdbc.DalRuntimeException;
+import org.unidal.lookup.annotation.Named;
 
+@Named(type = TokenParser.class)
 public class DefaultTokenParser implements TokenParser {
-
    public List<Token> parse(String pattern) {
       List<Token> tokens = new ArrayList<Token>();
       int len = pattern.length();
@@ -55,7 +56,7 @@ public class DefaultTokenParser implements TokenParser {
             if (numTags > 0) {
                if (sb.length() == 0 && pattern.charAt(i - 1) == '<') { // </...>
                   hasStartSlash = true;
-               } else if (inTag) { // <.../>
+               } else if (inTag || hasWhiteSpace) { // <.../>
                   hasEndSlash = true;
                } else {
                   sb.append(ch);
@@ -89,7 +90,8 @@ public class DefaultTokenParser implements TokenParser {
                   hasStartSlash = false;
                   hasEndSlash = false;
                } else {
-                  throw new DalRuntimeException("Illegal TAG usage, parsed tokens: " + tokens + ". Statement: " + pattern);
+                  throw new DalRuntimeException("Illegal TAG usage, parsed tokens: " + tokens + ". Statement: "
+                        + pattern);
                }
             } else {
                sb.append(ch);
@@ -180,7 +182,7 @@ public class DefaultTokenParser implements TokenParser {
                   }
                }
 
-               if (i + 1 >= len) {
+               if (i + 1 > len) {
                   throw new DalRuntimeException("Quote(" + ch + ") is not paired. Statement: " + pattern);
                }
             }

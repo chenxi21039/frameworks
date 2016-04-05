@@ -20,7 +20,7 @@ public class TableTokenResolverTest extends AbstractTokenResolverTest {
       QueryContext ctx = getSelectContext(query, user, readset);
 
       m_queryResolver.resolve(ctx);
-      Assert.assertEquals("`user_address` hua", ctx.getSqlStatement());
+      Assert.assertEquals("user_address hua", ctx.getSqlStatement());
    }
 
    @Test
@@ -31,7 +31,7 @@ public class TableTokenResolverTest extends AbstractTokenResolverTest {
       QueryContext ctx = getSelectContext(query, user, readset);
 
       m_queryResolver.resolve(ctx);
-      Assert.assertEquals("`user_address` address", ctx.getSqlStatement());
+      Assert.assertEquals("user_address address", ctx.getSqlStatement());
    }
 
    @Test

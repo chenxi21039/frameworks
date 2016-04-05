@@ -5,20 +5,26 @@ import org.unidal.dal.jdbc.annotation.Attribute;
 import org.unidal.dal.jdbc.engine.QueryContext;
 import org.unidal.dal.jdbc.entity.EntityInfo;
 import org.unidal.dal.jdbc.entity.EntityInfoManager;
+import org.unidal.dal.jdbc.query.QueryNaming;
 import org.unidal.dal.jdbc.query.token.SimpleTagToken;
 import org.unidal.dal.jdbc.query.token.Token;
 import org.unidal.dal.jdbc.query.token.TokenType;
 import org.unidal.lookup.annotation.Inject;
+import org.unidal.lookup.annotation.Named;
 
 /**
- * &lt;field name="<i>field-name</i>" [table="<i>table-name</i>"] /&gt;
+ * &lt;FIELD name="<i>field-name</i>" [table="<i>table-name</i>"] /&gt;
  */
+@Named(type = TokenResolver.class, value = "FIELD")
 public class FieldTokenResolver implements TokenResolver {
    @Inject
    private EntityInfoManager m_manager;
-   
+
    @Inject
    private ExpressionResolver m_expressionResolver;
+
+   @Inject
+   private QueryNaming m_naming;
 
    public String resolve(Token token, QueryContext ctx) {
       if (token.getType() != TokenType.FIELD) {
@@ -31,7 +37,6 @@ public class FieldTokenResolver implements TokenResolver {
       String[] logicalNameAndAlias = ctx.getEntityInfo().getLogicalNameAndAlias(tableName);
       EntityInfo entityInfo = m_manager.getEntityInfo(logicalNameAndAlias[0]);
       Attribute attribute = entityInfo.getAttribute(fieldName);
-      String tableAlias = logicalNameAndAlias[1];
 
       if (attribute != null) {
          switch (ctx.getQuery().getType()) {
@@ -39,14 +44,16 @@ public class FieldTokenResolver implements TokenResolver {
             if (attribute.selectExpr().length() > 0) {
                return m_expressionResolver.resolve(ctx, attribute.selectExpr());
             } else {
-               return tableAlias + "." + attribute.field();
+               String tableAlias = logicalNameAndAlias[1];
+
+               return m_naming.getField(attribute.field(), tableAlias);
             }
          case INSERT:
-            return attribute.field();
+            return m_naming.getField(attribute.field());
          case UPDATE:
-            return attribute.field();
+            return m_naming.getField(attribute.field());
          case DELETE:
-            return attribute.field();
+            return m_naming.getField(attribute.field());
          default:
             throw new DalRuntimeException("TABLE token does not support query type: " + ctx.getQuery().getType());
          }

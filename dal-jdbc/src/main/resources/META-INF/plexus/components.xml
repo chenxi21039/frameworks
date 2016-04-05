@@ -1,15 +1,50 @@
 <plexus>
 	<components>
 		<component>
-			<role>org.unidal.dal.jdbc.query.ReservedKeyword</role>
-			<implementation>org.unidal.dal.jdbc.msyql.MysqlReservedKeyword</implementation>
+			<role>org.unidal.dal.jdbc.query.QueryNaming</role>
+			<implementation>org.unidal.dal.jdbc.query.msyql.MysqlQueryNaming</implementation>
 		</component>
 		<component>
 			<role>org.unidal.dal.jdbc.query.QueryResolver</role>
-			<implementation>org.unidal.dal.jdbc.msyql.MysqlQueryResolver</implementation>
+			<implementation>org.unidal.dal.jdbc.query.msyql.MysqlQueryResolver</implementation>
 			<requirements>
 				<requirement>
 					<role>org.unidal.dal.jdbc.query.token.TokenParser</role>
+				</requirement>
+			</requirements>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.query.ReadHandler</role>
+			<role-hint>mysql</role-hint>
+			<implementation>org.unidal.dal.jdbc.query.msyql.MysqlReadHandler</implementation>
+			<requirements>
+				<requirement>
+					<role>org.unidal.dal.jdbc.transaction.TransactionManager</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.entity.DataObjectAssembly</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.entity.DataObjectAccessor</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.datasource.DataSourceManager</role>
+				</requirement>
+			</requirements>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.query.WriteHandler</role>
+			<role-hint>mysql</role-hint>
+			<implementation>org.unidal.dal.jdbc.query.msyql.MysqlWriteHandler</implementation>
+			<requirements>
+				<requirement>
+					<role>org.unidal.dal.jdbc.transaction.TransactionManager</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.entity.DataObjectAccessor</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.datasource.DataSourceManager</role>
 				</requirement>
 			</requirements>
 		</component>
@@ -41,7 +76,7 @@
 			<implementation>org.unidal.dal.jdbc.entity.DefaultEntityInfoManager</implementation>
 			<requirements>
 				<requirement>
-					<role>org.unidal.dal.jdbc.query.ReservedKeyword</role>
+					<role>org.unidal.dal.jdbc.query.QueryNaming</role>
 				</requirement>
 			</requirements>
 		</component>
@@ -79,19 +114,12 @@
 			<implementation>org.unidal.dal.jdbc.query.DefaultQueryExecutor</implementation>
 			<requirements>
 				<requirement>
-					<role>org.unidal.dal.jdbc.transaction.TransactionManager</role>
+					<role>org.unidal.dal.jdbc.query.ReadHandler</role>
+					<role-hint>mysql</role-hint>
 				</requirement>
 				<requirement>
-					<role>org.unidal.dal.jdbc.entity.DataObjectAccessor</role>
-				</requirement>
-				<requirement>
-					<role>org.unidal.dal.jdbc.entity.DataObjectAssembly</role>
-				</requirement>
-				<requirement>
-					<role>org.unidal.dal.jdbc.datasource.DataSourceManager</role>
-				</requirement>
-				<requirement>
-					<role>com.dianping.cat.message.MessageProducer</role>
+					<role>org.unidal.dal.jdbc.query.WriteHandler</role>
+					<role-hint>mysql</role-hint>
 				</requirement>
 			</requirements>
 		</component>
@@ -136,6 +164,10 @@
 			</requirements>
 		</component>
 		<component>
+			<role>org.unidal.dal.jdbc.datasource.JdbcDataSourceDescriptorManager</role>
+			<implementation>org.unidal.dal.jdbc.datasource.JdbcDataSourceDescriptorManager</implementation>
+		</component>
+		<component>
 			<role>org.unidal.dal.jdbc.query.token.resolver.TokenResolver</role>
 			<role-hint>STRING</role-hint>
 			<implementation>org.unidal.dal.jdbc.query.token.resolver.StringTokenResolver</implementation>
@@ -161,6 +193,9 @@
 				<requirement>
 					<role>org.unidal.dal.jdbc.query.token.resolver.ExpressionResolver</role>
 				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.query.QueryNaming</role>
+				</requirement>
 			</requirements>
 		</component>
 		<component>
@@ -174,6 +209,9 @@
 				<requirement>
 					<role>org.unidal.dal.jdbc.query.token.resolver.ExpressionResolver</role>
 				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.query.QueryNaming</role>
+				</requirement>
 			</requirements>
 		</component>
 		<component>
@@ -184,6 +222,9 @@
 				<requirement>
 					<role>org.unidal.dal.jdbc.mapping.TableProviderManager</role>
 				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.query.QueryNaming</role>
+				</requirement>
 			</requirements>
 		</component>
 		<component>
@@ -193,6 +234,9 @@
 			<requirements>
 				<requirement>
 					<role>org.unidal.dal.jdbc.mapping.TableProviderManager</role>
+				</requirement>
+				<requirement>
+					<role>org.unidal.dal.jdbc.query.QueryNaming</role>
 				</requirement>
 			</requirements>
 		</component>
@@ -240,16 +284,45 @@
 			<role>org.unidal.dal.jdbc.mapping.TableProvider</role>
 			<role-hint>raw</role-hint>
 			<implementation>org.unidal.dal.jdbc.mapping.RawTableProvider</implementation>
-			<configuration>
-				<logical-table-name>raw</logical-table-name>
-			</configuration>
 		</component>
 		<component>
 			<role>org.unidal.dal.jdbc.raw.RawDao</role>
 			<implementation>org.unidal.dal.jdbc.raw.RawDao</implementation>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.test.TableSchemaBuilder</role>
+			<implementation>org.unidal.dal.jdbc.test.TableSchemaBuilder</implementation>
+			<instantiation-strategy>per-lookup</instantiation-strategy>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.test.QueryResultBuilder</role>
+			<implementation>org.unidal.dal.jdbc.test.QueryResultBuilder</implementation>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.test.DatabaseDumper</role>
+			<implementation>org.unidal.dal.jdbc.test.DatabaseDumper</implementation>
 			<requirements>
 				<requirement>
-					<role>org.unidal.dal.jdbc.QueryEngine</role>
+					<role>org.unidal.dal.jdbc.raw.RawDao</role>
+				</requirement>
+			</requirements>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.test.TableMaker</role>
+			<implementation>org.unidal.dal.jdbc.test.TableMaker</implementation>
+			<requirements>
+				<requirement>
+					<role>org.unidal.dal.jdbc.raw.RawDao</role>
+				</requirement>
+			</requirements>
+		</component>
+		<component>
+			<role>org.unidal.dal.jdbc.test.TableLoader</role>
+			<implementation>org.unidal.dal.jdbc.test.TableLoader</implementation>
+			<instantiation-strategy>per-lookup</instantiation-strategy>
+			<requirements>
+				<requirement>
+					<role>org.unidal.dal.jdbc.raw.RawDao</role>
 				</requirement>
 			</requirements>
 		</component>

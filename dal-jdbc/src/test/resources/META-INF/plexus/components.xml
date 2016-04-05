@@ -1,10 +1,10 @@
 <plexus>
 	<components>
 		<component>
-			<role>org.unidal.dal.jdbc.datasource.JdbcDataSourceDescriptorManager</role>
-			<implementation>org.unidal.dal.jdbc.datasource.JdbcDataSourceDescriptorManager</implementation>
+			<role>org.unidal.dal.jdbc.datasource.DataSourceProvider</role>
+			<implementation>org.unidal.dal.jdbc.datasource.DefaultDataSourceProvider</implementation>
 			<configuration>
-				<datasourceFile>/Users/qmwu/project/frameworks/dal-jdbc/target/test-classes/org/unidal/dal/jdbc/datasource/datasource.xml</datasourceFile>
+				<datasourceFile>org/unidal/dal/jdbc/datasource/datasource.xml</datasourceFile>
 			</configuration>
 		</component>
 		<component>
@@ -13,7 +13,7 @@
 			<implementation>org.unidal.dal.jdbc.mapping.SimpleTableProvider</implementation>
 			<configuration>
 				<data-source-name>jdbc-dal</data-source-name>
-				<logical-table-name>user</logical-table-name>
+				<physical-table-name>user</physical-table-name>
 			</configuration>
 		</component>
 		<component>
@@ -22,7 +22,7 @@
 			<implementation>org.unidal.dal.jdbc.mapping.SimpleTableProvider</implementation>
 			<configuration>
 				<data-source-name>jdbc-dal</data-source-name>
-				<logical-table-name>user2</logical-table-name>
+				<physical-table-name>user2</physical-table-name>
 			</configuration>
 		</component>
 		<component>
@@ -31,7 +31,6 @@
 			<implementation>org.unidal.dal.jdbc.mapping.SimpleTableProvider</implementation>
 			<configuration>
 				<data-source-name>jdbc-dal</data-source-name>
-				<logical-table-name>user-address</logical-table-name>
 				<physical-table-name>user_address</physical-table-name>
 			</configuration>
 		</component>

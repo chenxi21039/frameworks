@@ -17,20 +17,26 @@ import org.unidal.dal.jdbc.engine.QueryContext;
 import org.unidal.dal.jdbc.entity.EntityInfo;
 import org.unidal.dal.jdbc.entity.EntityInfoManager;
 import org.unidal.dal.jdbc.query.Parameter;
+import org.unidal.dal.jdbc.query.QueryNaming;
 import org.unidal.dal.jdbc.query.token.SimpleTagToken;
 import org.unidal.dal.jdbc.query.token.Token;
 import org.unidal.dal.jdbc.query.token.TokenType;
 import org.unidal.lookup.annotation.Inject;
+import org.unidal.lookup.annotation.Named;
 
 /**
- * &lt;fields /&gt;
+ * &lt;FIELDS /&gt;
  */
+@Named(type = TokenResolver.class, value = "FIELDS")
 public class FieldsTokenResolver implements TokenResolver {
    @Inject
    private EntityInfoManager m_manager;
 
    @Inject
    private ExpressionResolver m_expressionResolver;
+   
+   @Inject
+   private QueryNaming m_naming;
 
    @SuppressWarnings("unchecked")
    public String resolve(Token token, QueryContext ctx) {
@@ -84,7 +90,7 @@ public class FieldsTokenResolver implements TokenResolver {
                   if (attribute.selectExpr().length() > 0) {
                      sb.append(m_expressionResolver.resolve(ctx, attribute.selectExpr()));
                   } else {
-                     sb.append(alias).append('.').append(m_manager.getQuotedName(attribute.field()));
+                     sb.append(alias).append('.').append(m_naming.getField(attribute.field()));
                   }
 
                   if ("true".equals(output)) {
@@ -108,7 +114,7 @@ public class FieldsTokenResolver implements TokenResolver {
                      sb.append(',');
                   }
 
-                  sb.append(m_manager.getQuotedName(attribute.field()));
+                  sb.append(m_naming.getField(attribute.field()));
                }
             } else {
                throw new DalRuntimeException("Internal error: No Attribute annotation defined for field: " + field);
@@ -127,9 +133,9 @@ public class FieldsTokenResolver implements TokenResolver {
                   }
 
                   if (!proto.isFieldUsed(field) && attribute.updateExpr().length() > 0) {
-                     sb.append(attribute.field()).append('=').append(m_expressionResolver.resolve(ctx, attribute.updateExpr()));
+                     sb.append(m_naming.getField(attribute.field())).append('=').append(m_expressionResolver.resolve(ctx, attribute.updateExpr()));
                   } else {
-                     sb.append(attribute.field()).append("=?");
+                     sb.append(m_naming.getField(attribute.field())).append("=?");
                      ctx.addParameter(new Parameter(field));
                   }
                }

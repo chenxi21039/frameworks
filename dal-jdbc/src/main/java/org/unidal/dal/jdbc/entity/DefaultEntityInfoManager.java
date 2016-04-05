@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
 import org.unidal.dal.jdbc.DalRuntimeException;
 import org.unidal.dal.jdbc.DataField;
 import org.unidal.dal.jdbc.Readset;
@@ -16,13 +18,15 @@ import org.unidal.dal.jdbc.annotation.Entity;
 import org.unidal.dal.jdbc.annotation.Relation;
 import org.unidal.dal.jdbc.annotation.SubObjects;
 import org.unidal.dal.jdbc.annotation.Variable;
-import org.unidal.dal.jdbc.query.ReservedKeyword;
+import org.unidal.dal.jdbc.query.QueryNaming;
 import org.unidal.dal.jdbc.raw.RawEntity;
 import org.unidal.lookup.annotation.Inject;
+import org.unidal.lookup.annotation.Named;
 
-public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled {
+@Named(type = EntityInfoManager.class)
+public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled, Initializable {
    @Inject
-   private ReservedKeyword m_reservedKeyword;
+   private QueryNaming m_reservedKeyword;
 
    private Map<String, Class<?>> m_logicalNameToEntityClass = new HashMap<String, Class<?>>();
 
@@ -55,15 +59,6 @@ public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled {
       }
    }
 
-   @Override
-   public String getQuotedName(String name) {
-      if (m_reservedKeyword.isKeyword(name)) {
-         return "`" + name + "`"; // for mysql only
-      } else {
-         return name;
-      }
-   }
-
    public synchronized void register(Class<?> entityClass) {
       if (m_entityClassToEntityInfo.containsKey(entityClass)) {
          m_logger.debug(entityClass + " is already initialized yet");
@@ -88,7 +83,8 @@ public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled {
 
          if (type == DataField.class) {
             if (!Modifier.isStatic(field.getModifiers())) {
-               throw new DalRuntimeException("Field " + field.getName() + " of " + entityClass + " should be modified as static");
+               throw new DalRuntimeException("Field " + field.getName() + " of " + entityClass
+                     + " should be modified as static");
             }
 
             Relation relation = field.getAnnotation(Relation.class);
@@ -121,7 +117,8 @@ public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled {
             index++;
          } else if (type == Readset.class) {
             if (!Modifier.isStatic(field.getModifiers())) {
-               throw new DalRuntimeException("Readset " + field.getName() + " of " + entityClass + " should be modified as static");
+               throw new DalRuntimeException("Readset " + field.getName() + " of " + entityClass
+                     + " should be modified as static");
             }
 
             SubObjects subobject = field.getAnnotation(SubObjects.class);
@@ -155,5 +152,10 @@ public class DefaultEntityInfoManager implements EntityInfoManager, LogEnabled {
       EntityInfo info = new EntityInfo(entity, relations, attributes, variables, subobjects);
 
       m_entityClassToEntityInfo.put(entityClass, info);
+   }
+
+   @Override
+   public void initialize() throws InitializationException {
+      register(RawEntity.class);
    }
 }

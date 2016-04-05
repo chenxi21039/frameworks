@@ -10,7 +10,9 @@ import org.unidal.dal.jdbc.query.token.StringToken;
 import org.unidal.dal.jdbc.query.token.Token;
 import org.unidal.dal.jdbc.query.token.TokenParser;
 import org.unidal.lookup.annotation.Inject;
+import org.unidal.lookup.annotation.Named;
 
+@Named
 public class ExpressionResolver {
    @Inject
    private TokenParser m_parser;
@@ -34,7 +36,7 @@ public class ExpressionResolver {
             ctx.addParameter(new Parameter(field));
             break;
          default:
-            throw new RuntimeException("Unsupported yet.");
+            throw new RuntimeException("Not supported yet.");
          }
       }
 

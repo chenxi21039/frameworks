@@ -35,11 +35,11 @@ public abstract class ContainerHolder implements Contextualizable {
 
    protected <T> T lookup(Class<T> role, String roleHint) throws LookupException {
       try {
-         return (T) m_container.lookup(role, roleHint == null ? "default" : roleHint.toString());
+         return (T) m_container.lookup(role, roleHint == null ? "default" : roleHint);
       } catch (ComponentLookupException e) {
-         String key = role.getName() + ":" + (roleHint == null ? "default" : roleHint.toString());
+         String key = role.getName() + ":" + (roleHint == null ? "default" : roleHint);
 
-         throw new LookupException("Component(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component(" + key + ").", e);
       }
    }
 
@@ -51,9 +51,9 @@ public abstract class ContainerHolder implements Contextualizable {
       try {
          return ContainerLoader.lookupById(role, roleHint, id);
       } catch (ComponentLookupException e) {
-         String key = role.getName() + ":" + (roleHint == null ? "default" : roleHint.toString()) + "@" + id;
+         String key = role.getName() + ":" + (roleHint == null ? "default" : roleHint) + "@" + id;
 
-         throw new LookupException("Component(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component(" + key + ").", e);
       }
    }
 
@@ -63,7 +63,7 @@ public abstract class ContainerHolder implements Contextualizable {
       } catch (ComponentLookupException e) {
          String key = role.getName();
 
-         throw new LookupException("Component list(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component list(" + key + ").", e);
       }
    }
 
@@ -73,7 +73,7 @@ public abstract class ContainerHolder implements Contextualizable {
       } catch (ComponentLookupException e) {
          String key = role.getName() + ":" + roleHints;
 
-         throw new LookupException("Component list(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component list(" + key + ").", e);
       }
    }
 
@@ -83,7 +83,7 @@ public abstract class ContainerHolder implements Contextualizable {
       } catch (ComponentLookupException e) {
          String key = role.getName();
 
-         throw new LookupException("Component map(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component map(" + key + ").", e);
       }
    }
 
@@ -93,7 +93,7 @@ public abstract class ContainerHolder implements Contextualizable {
       } catch (ComponentLookupException e) {
          String key = role.getName() + ":" + roleHints;
 
-         throw new LookupException("Component map(" + key + ") lookup failure. Details: " + e.getMessage(), e);
+         throw new LookupException("Unable to lookup component map(" + key + ").", e);
       }
    }
 
@@ -130,5 +130,4 @@ public abstract class ContainerHolder implements Contextualizable {
    protected void setContainer(PlexusContainer container) {
       m_container = container;
    }
-
 }

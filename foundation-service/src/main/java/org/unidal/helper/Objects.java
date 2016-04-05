@@ -85,7 +85,7 @@ public class Objects {
          if (value == null) {
             m_sb.append("null");
          } else {
-            String str = value.toString();
+            String str = value;
 
             int len = str.length();
 
@@ -121,7 +121,7 @@ public class Objects {
       }
    }
 
-   public static enum JsonObject {
+   public enum JsonObject {
       COMPACT;
 
       public String from(Object obj) {
@@ -322,7 +322,7 @@ public class Objects {
 
    }
 
-   public static enum XmlObject {
+   public enum XmlObject {
       COMPACT;
 
       public String from(String name, Object obj) {
@@ -557,7 +557,7 @@ public class Objects {
          if (value == null) {
             m_sb.append("null");
          } else {
-            String str = value.toString();
+            String str = value;
 
             int len = str.length();
 
