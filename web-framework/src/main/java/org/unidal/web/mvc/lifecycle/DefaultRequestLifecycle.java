@@ -118,13 +118,13 @@ public class DefaultRequestLifecycle implements RequestLifecycle, LogEnabled {
       if (inboundAction.getPreActionNames() != null) {
          for (String actionName : inboundAction.getPreActionNames()) {
             InboundActionModel action = module.getInbounds().get(actionName);
+            InboundActionHandler handler = m_actionHandlerManager.getInboundActionHandler(module, action);
             ActionContext<?> ctx = createActionContext(request, response, requestContext, action);
 
             ctx.setParent(actionContext);
-            requestContext.setInboundAction(action);
 
             try {
-               handleInboundAction(module, ctx);
+               handler.handle(ctx);
 
                if (!ctx.isProcessStopped() && !ctx.isSkipAction()) {
                   continue;
@@ -139,8 +139,6 @@ public class DefaultRequestLifecycle implements RequestLifecycle, LogEnabled {
 
             return false;
          }
-
-         requestContext.setInboundAction(inboundAction);
       }
 
       return true;
@@ -158,7 +156,7 @@ public class DefaultRequestLifecycle implements RequestLifecycle, LogEnabled {
       ActionContext<?> actionContext = createActionContext(request, response, requestContext, inboundAction);
       Transaction t = Cat.getManager().getPeekTransaction();
 
-      if (t == null) { // in case of not CatFilter is configured
+      if (t == null) { // in case of no CatFilter is configured
          t = NullMessage.TRANSACTION;
       }
 
@@ -166,6 +164,10 @@ public class DefaultRequestLifecycle implements RequestLifecycle, LogEnabled {
             actionContext.getRequestContext().getActionUri(inboundAction.getActionName()));
 
       try {
+         InboundActionHandler handler = m_actionHandlerManager.getInboundActionHandler(module, inboundAction);
+
+         handler.preparePayload(actionContext);
+         
          if (!handlePreActions(request, response, module, requestContext, inboundAction, actionContext)) {
             return;
          }
@@ -184,11 +186,7 @@ public class DefaultRequestLifecycle implements RequestLifecycle, LogEnabled {
 
          t.addData("out", actionContext.getOutboundAction());
          handleOutboundAction(module, actionContext);
-      } catch (ActionException e) {
-         handleException(request, e, actionContext);
-      } catch (Exception e) {
-         handleException(request, e, actionContext);
-      } catch (Error e) {
+      } catch (Throwable e) {
          handleException(request, e, actionContext);
       }
    }

@@ -103,13 +103,13 @@ public class ModelManager extends ContainerHolder implements Initializable {
 
       if (existing != null) {
          if (existing.getActionMethod().getName().equals(method.getName())
-               && existing.getActionMethod().getDeclaringClass() == method.getDeclaringClass()) {
+               && existing.getActionMethod().getDeclaringClass().equals(method.getDeclaringClass())) {
             return existing;
          }
 
-         throw new RuntimeException(String.format("Duplicated name(%s) found between %s() of %s and %s() of %s",
-               inMeta.name(), method.getName(), method.getDeclaringClass(), existing.getActionMethod().getName(),
-               module.getModuleClass()));
+         throw new RuntimeException(String.format("Duplicated name(%s) found between %s.%s() and %s.%s()",
+               inMeta.name(), method.getDeclaringClass().getName(), method.getName(), existing.getActionMethod()
+                     .getDeclaringClass().getName(), existing.getActionMethod().getName()));
       }
 
       assertParameter(method);
@@ -131,11 +131,22 @@ public class ModelManager extends ContainerHolder implements Initializable {
       if (payloadMeta != null) {
          inbound.setPayloadClass(payloadMeta.value());
       }
+      
+      ValidationMeta moduleValidationMeta = module.getModuleClass().getAnnotation(ValidationMeta.class);
+      if (moduleValidationMeta != null) {
+         for (Class<?> validationClass : moduleValidationMeta.value()) {
+            if (!inbound.getValidationClasses().contains(validationClass)) {
+               inbound.addValidationClass(validationClass);
+            }
+         }
+      }
 
-      ValidationMeta validationMeta = method.getAnnotation(ValidationMeta.class);
-      if (validationMeta != null) {
-         for (Class<?> validationClass : validationMeta.value()) {
-            inbound.addValidationClass(validationClass);
+      ValidationMeta actionValidationMeta = method.getAnnotation(ValidationMeta.class);
+      if (actionValidationMeta != null) {
+         for (Class<?> validationClass : actionValidationMeta.value()) {
+            if (!inbound.getValidationClasses().contains(validationClass)) {
+               inbound.addValidationClass(validationClass);
+            }
          }
       }
 

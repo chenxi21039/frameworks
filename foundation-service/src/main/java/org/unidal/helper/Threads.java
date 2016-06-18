@@ -121,6 +121,11 @@ public class Threads {
       }
 
       @Override
+      public void enableLogging(Logger logger) {
+         m_logger = logger;
+      }
+
+      @Override
       public void onThreadGroupCreated(ThreadGroup group, String name) {
          m_logger.info(String.format("Thread group(%s) created.", name));
       }
@@ -142,13 +147,8 @@ public class Threads {
 
       @Override
       public boolean onUncaughtException(Thread thread, Throwable e) {
-         m_logger.error(String.format("Uncaught exception thrown out of thread(%s).", thread.getName()), e);
+         m_logger.error(String.format("Uncaught exception thrown out of thread(%s)!", thread.getName()), e);
          return true;
-      }
-
-      @Override
-      public void enableLogging(Logger logger) {
-         m_logger = logger;
       }
    }
 
@@ -297,8 +297,8 @@ public class Threads {
 
       public void shutdown() {
          if (m_target instanceof Task) {
-            System.out.println("shutdown task " + ((Task) m_target).getName());
             ((Task) m_target).shutdown();
+            System.out.println(String.format("Task(%s) is shutdown! ", getName()));
          } else {
             interrupt();
          }
@@ -318,15 +318,14 @@ public class Threads {
 
       private boolean m_active;
 
+      private boolean m_deamon;
+
       public ThreadGroupManager(UncaughtExceptionHandler handler, String name) {
          m_threadGroup = new ThreadGroup(name);
          m_factory = new DefaultThreadFactory(m_threadGroup);
          m_factory.setUncaughtExceptionHandler(handler);
          m_active = true;
-      }
-
-      public boolean isActive() {
-         return m_active;
+         m_deamon = true;
       }
 
       public void awaitTermination(long time, TimeUnit unit) {
@@ -363,7 +362,12 @@ public class Threads {
          return m_threadGroup;
       }
 
+      public boolean isActive() {
+         return m_active;
+      }
+
       public ThreadGroupManager nonDaemon() {
+         m_deamon = false;
          return this;
       }
 
@@ -386,7 +390,7 @@ public class Threads {
       }
 
       public Thread start(Runnable runnable) {
-         return start(runnable, true);
+         return start(runnable, m_deamon);
       }
 
       public Thread start(Runnable runnable, boolean deamon) {
